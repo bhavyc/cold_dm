@@ -237,7 +237,19 @@
       return null;
     }
 
-    // 1. Look for [Message] button -> insert immediately after it
+    // 1. Prioritize inserting immediately before the "..." (More actions) overflow button
+    // This cleanly puts [Write Icebreaker] at the end of the action buttons row on all profiles
+    const moreBtn = candidates.find(b => {
+      const t = (b.textContent || b.innerText || '').trim();
+      const a = (b.getAttribute('aria-label') || '').toLowerCase();
+      return t === '...' || a.includes('more action') || a.includes('more profile action');
+    });
+    if (moreBtn) {
+      const anchor = moreBtn.closest('.artdeco-dropdown') || moreBtn;
+      return { anchor, position: 'beforebegin', label: 'More actions button' };
+    }
+
+    // 2. Look for [Message] button -> insert immediately after it
     const msgBtn = candidates.find(b => {
       const t = (b.textContent || b.innerText || '').toLowerCase();
       const a = (b.getAttribute('aria-label') || '').toLowerCase();
@@ -248,7 +260,7 @@
       return { anchor, position: 'afterend', label: 'Message button' };
     }
 
-    // 2. Look for [Connect] button -> insert immediately after it
+    // 3. Look for [Connect] button -> insert immediately after it
     const connBtn = candidates.find(b => {
       const t = (b.textContent || b.innerText || '').toLowerCase();
       const a = (b.getAttribute('aria-label') || '').toLowerCase();
@@ -259,7 +271,7 @@
       return { anchor, position: 'afterend', label: 'Connect button' };
     }
 
-    // 3. Look for [Enhance profile] / [Add section] / [Open to] (Own profile)
+    // 4. Look for [Enhance profile] / [Add section] / [Open to] (Own profile fallback)
     const ownBtn = candidates.find(b => {
       const t = (b.textContent || b.innerText || '').toLowerCase();
       const a = (b.getAttribute('aria-label') || '').toLowerCase();
@@ -268,17 +280,6 @@
     if (ownBtn) {
       const anchor = ownBtn.closest('.artdeco-dropdown') || ownBtn;
       return { anchor, position: 'afterend', label: 'Own profile button' };
-    }
-
-    // 4. Look for [...] (More actions) overflow button -> insert right before it
-    const moreBtn = candidates.find(b => {
-      const t = (b.textContent || b.innerText || '').trim();
-      const a = (b.getAttribute('aria-label') || '').toLowerCase();
-      return t === '...' || a.includes('more action') || a.includes('more profile action');
-    });
-    if (moreBtn) {
-      const anchor = moreBtn.closest('.artdeco-dropdown') || moreBtn;
-      return { anchor, position: 'beforebegin', label: 'More actions button' };
     }
 
     // 5. Fallback: Take the last action button in the top group
@@ -306,14 +307,14 @@
 
     const btn = document.createElement('button');
     btn.id = 'colddm-btn-injected';
-    btn.className = 'colddm-inject-btn';
+    btn.className = 'artdeco-button artdeco-button--2 artdeco-button--secondary ember-view colddm-inject-btn';
     btn.setAttribute('type', 'button');
     btn.innerHTML = `
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="artdeco-button__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 20h9"/>
         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
       </svg>
-      <span>Write Icebreaker</span>
+      <span class="artdeco-button__text">Write Icebreaker</span>
     `;
     btn.title = 'Draft personalized outreach with ColdDM';
 
