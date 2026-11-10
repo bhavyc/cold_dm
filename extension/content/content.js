@@ -42,7 +42,6 @@
           });
         });
       } else {
-        // Fallback if running outside chrome extension sandbox
         const raw = localStorage.getItem('colddm_daily_quota');
         let quota = raw ? JSON.parse(raw) : { date: today, count: 0 };
         if (quota.date !== today) {
@@ -93,11 +92,8 @@
 
   function cleanProspectName(rawName) {
     if (!rawName) return '';
-    // Strip pronouns e.g. (He/Him), (She/Her), (They/Them)
     let cleaned = rawName.replace(/\s*\((he\/him|she\/her|they\/them|he\/they|she\/they)[^)]*\)/gi, '');
-    // Strip common suffixes / credentials: PhD, MBA, PMP, CPA, MD
     cleaned = cleaned.replace(/,\s*(PhD|MBA|PMP|CPA|MD|Esq|MS|BS)\b/gi, '');
-    // Strip emoji characters
     cleaned = cleaned.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
     return cleaned.trim();
   }
@@ -108,7 +104,6 @@
     let about = '';
     let recentPost = '';
 
-    // 1. Prospect Name
     const nameSelectors = [
       'h1.inline.t-24.v-align-middle.break-words',
       'h1.text-heading-xlarge',
@@ -120,12 +115,14 @@
     for (const sel of nameSelectors) {
       const el = document.querySelector(sel);
       if (el && el.innerText && el.innerText.trim()) {
-        name = cleanProspectName(el.innerText.trim());
-        if (name && !name.toLowerCase().includes('feed') && !name.toLowerCase().includes('linkedin')) break;
+        const candidate = cleanProspectName(el.innerText.trim());
+        if (candidate && !candidate.toLowerCase().includes('feed') && !candidate.toLowerCase().includes('linkedin')) {
+          name = candidate;
+          break;
+        }
       }
     }
 
-    // Fallback to title
     if (!name && document.title) {
       const parts = document.title.split('|')[0].split('-')[0].trim();
       if (parts && !parts.toLowerCase().includes('linkedin')) {
@@ -133,7 +130,6 @@
       }
     }
 
-    // 2. Current Headline / Role
     const headlineSelectors = [
       '.text-body-medium.break-words',
       'div[data-generated-suggestion-target]',
@@ -149,7 +145,6 @@
       }
     }
 
-    // 3. About Section (first 200 words)
     const aboutSection = document.querySelector('section:has(#about), #about ~ div, section.artdeco-card:has(#about)');
     if (aboutSection) {
       const textEl = aboutSection.querySelector('.inline-show-more-text, .full-width span, .display-flex span');
@@ -160,7 +155,6 @@
       }
     }
 
-    // 4. Recent Post / Activity
     const activitySelectors = [
       '.feed-shared-update-v2__description',
       'section:has(#content_collections) span[dir="ltr"]',
@@ -184,7 +178,7 @@
   }
 
   /* ==========================================================================
-     3. Button Injection Logic (SPA & All Profile Types Aware)
+     3. Robust Button Injection Logic
      ========================================================================== */
 
   function isLinkedInProfile() {
@@ -196,20 +190,98 @@
            href.includes('mock-linkedin');
   }
 
+  function findActionTarget() {
+    // 1. Primary Strategy: Locate top profile card via the primary <h1>
+    const h1 = document.querySelector('main h1, .scaffold-layout__main h1, h1');
+    if (h1) {
+      // Find the card container holding this profile header
+      const card = h1.closest('section.artdeco-card, div.ph5, div.pv-top-card, .scaffold-layout__main') || h1.parentElement?.parentElement?.parentElement;
+      if (card) {
+        const buttons = Array.from(card.querySelectorAll('button'));
+
+        // Look for [Message] button in this card
+        const msgBtn = buttons.find(b => {
+          const t = (b.textContent || b.innerText || '').toLowerCase();
+          const a = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t.includes('message') || a.includes('message');
+        });
+        if (msgBtn) {
+          const anchor = msgBtn.closest('.artdeco-dropdown') || msgBtn;
+          return { anchor, position: 'afterend', label: 'Message button' };
+        }
+
+        // Look for [Connect] button in this card
+        const connBtn = buttons.find(b => {
+          const t = (b.textContent || b.innerText || '').toLowerCase();
+          const a = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t.includes('connect') || a.includes('connect');
+        });
+        if (connBtn) {
+          const anchor = connBtn.closest('.artdeco-dropdown') || connBtn;
+          return { anchor, position: 'afterend', label: 'Connect button' };
+        }
+
+        // Look for [Enhance profile] / [Add section] / [Open to] (Own profile)
+        const ownBtn = buttons.find(b => {
+          const t = (b.textContent || b.innerText || '').toLowerCase();
+          const a = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t.includes('enhance profile') || t.includes('add section') || t.includes('open to');
+        });
+        if (ownBtn) {
+          const anchor = ownBtn.closest('.artdeco-dropdown') || ownBtn;
+          return { anchor, position: 'afterend', label: 'Own profile action button' };
+        }
+
+        // Look for [...] More actions button in this card
+        const moreBtn = buttons.find(b => {
+          const t = (b.textContent || b.innerText || '').trim();
+          const a = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t === '...' || a.includes('more action') || a.includes('more profile action');
+        });
+        if (moreBtn) {
+          const anchor = moreBtn.closest('.artdeco-dropdown') || moreBtn;
+          return { anchor, position: 'beforebegin', label: 'More (...) overflow button' };
+        }
+      }
+    }
+
+    // 2. Secondary Strategy: Scan all page buttons, but strictly EXCLUDE sidebar
+    const allButtons = Array.from(document.querySelectorAll('button'));
+    const validMainBtn = allButtons.find(b => {
+      // Exclude aside, sidebars, messaging popups
+      if (b.closest('aside, .scaffold-layout__aside, [class*="aside"], .msg-overlay-bubble-header, #msg-overlay')) {
+        return false;
+      }
+      const t = (b.textContent || b.innerText || '').toLowerCase();
+      const a = (b.getAttribute('aria-label') || '').toLowerCase();
+      return t.includes('message') || t.includes('connect') || t.includes('open to');
+    });
+
+    if (validMainBtn) {
+      const anchor = validMainBtn.closest('.artdeco-dropdown') || validMainBtn;
+      return { anchor, position: 'afterend', label: 'Main page action button fallback' };
+    }
+
+    return null;
+  }
+
   function injectButton() {
     if (!isLinkedInProfile()) return;
 
-    // Remove any old floating trigger if present
+    // Remove any floating button
     const oldFloat = document.querySelector('#colddm-floating-btn');
     if (oldFloat) oldFloat.remove();
 
-    // Check if already injected and still connected in DOM
-    const existing = document.querySelector('#colddm-btn-injected');
-    if (existing && document.body.contains(existing)) {
+    // Prevent duplicate injection
+    if (document.querySelector('#colddm-btn-injected')) {
       return;
     }
 
-    // Create the button
+    const target = findActionTarget();
+    if (!target || !target.anchor) {
+      return;
+    }
+
     const btn = document.createElement('button');
     btn.id = 'colddm-btn-injected';
     btn.className = 'colddm-inject-btn';
@@ -229,86 +301,16 @@
       handleTriggerClick();
     });
 
-    // --- Search for the Action Button Row ---
-    // 1. Check known container classes first
-    const knownContainers = [
-      '.pvs-profile-actions',
-      '.pv-top-card-v2-ctas',
-      'div[class*="pv-top-card"] [class*="action"]'
-    ];
-    for (const sel of knownContainers) {
-      const container = document.querySelector(sel);
-      if (container && container.querySelectorAll('button').length > 0) {
-        const moreBtn = container.querySelector('button[aria-label*="More"], button[aria-label*="more"], .artdeco-dropdown');
-        if (moreBtn) {
-          container.insertBefore(btn, moreBtn);
-        } else {
-          container.appendChild(btn);
-        }
-        console.log('[ColdDM] Injected via known container:', sel);
-        return;
+    try {
+      if (target.position === 'beforebegin') {
+        target.anchor.insertAdjacentElement('beforebegin', btn);
+      } else {
+        target.anchor.insertAdjacentElement('afterend', btn);
       }
+      console.log(`%c[ColdDM] Injected button successfully (${target.label})`, 'color: #0a66c2; font-weight: bold;');
+    } catch (err) {
+      console.error('[ColdDM] Failed to insert button:', err);
     }
-
-    // 2. Scan all buttons on the page to find profile action buttons
-    const allButtons = Array.from(document.querySelectorAll('button'));
-
-    const actionKeywords = [
-      'message', 'connect', 'follow', 'open to',
-      'add section', 'enhance profile', 'pending'
-    ];
-
-    let matchedBtn = null;
-    let overflowBtn = null;
-
-    for (const b of allButtons) {
-      // Must be inside the top section of the profile
-      const inTopCard = b.closest('.ph5, .pv-top-card, section.artdeco-card, main, [class*="top-card"]');
-      if (!inTopCard) continue;
-
-      const text = (b.textContent || b.innerText || '').trim().toLowerCase();
-      const aria = (b.getAttribute('aria-label') || '').trim().toLowerCase();
-
-      for (const kw of actionKeywords) {
-        if (text.includes(kw) || aria.includes(kw)) {
-          matchedBtn = b;
-          break;
-        }
-      }
-
-      if (text === '...' || aria.includes('more action') || aria.includes('more profile action') || aria.includes('more…')) {
-        overflowBtn = b;
-      }
-    }
-
-    // Prioritize inserting right before the "..." (More actions) overflow button
-    if (overflowBtn) {
-      const anchor = overflowBtn.closest('.artdeco-dropdown') || overflowBtn;
-      anchor.insertAdjacentElement('beforebegin', btn);
-      console.log('[ColdDM] Injected before More (...) overflow button');
-      return;
-    }
-
-    // Or insert immediately after the matched action button
-    if (matchedBtn) {
-      const anchor = matchedBtn.closest('.artdeco-dropdown') || matchedBtn;
-      anchor.insertAdjacentElement('afterend', btn);
-      console.log('[ColdDM] Injected after action button:', matchedBtn.textContent.trim());
-      return;
-    }
-
-    // 3. Fallback: Find connection info list and append to its sibling container
-    const connList = document.querySelector('ul.pv-top-card--list-bullet, .ph5 ul, span:has(+ ul)');
-    if (connList && connList.parentElement) {
-      const nextDiv = connList.parentElement.querySelector('div:has(button)') || connList.nextElementSibling;
-      if (nextDiv) {
-        nextDiv.appendChild(btn);
-        console.log('[ColdDM] Injected via connection list sibling fallback');
-        return;
-      }
-    }
-
-    console.warn('[ColdDM] Waiting for LinkedIn profile action buttons to render...');
   }
 
   /* ==========================================================================
@@ -332,7 +334,7 @@
       <div class="colddm-modal" id="colddm-modal-box">
         <div class="colddm-modal-header">
           <div class="colddm-header-left">
-            <div class="colddm-avatar-badge" id="colddm-modal-initials">SC</div>
+            <div class="colddm-avatar-badge" id="colddm-modal-initials">DM</div>
             <div class="colddm-title-box">
               <h3 id="colddm-modal-name">Draft Outreach Messages</h3>
               <p id="colddm-modal-headline">Loading prospect data...</p>
@@ -355,7 +357,7 @@
           </div>
         </div>
         <div class="colddm-modal-body" id="colddm-modal-content">
-          <!-- Dynamic states injected here: Skeleton, Limit Banner, or Cards -->
+          <!-- Dynamic states injected here -->
         </div>
         <div class="colddm-modal-footer">
           <span class="colddm-footer-meta">Click "Copy" to paste into LinkedIn Connection Note or Message</span>
@@ -371,7 +373,6 @@
 
     document.body.appendChild(overlay);
 
-    // Event listeners
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
         closeModal();
@@ -394,7 +395,6 @@
         return;
       }
 
-      // If user is actively typing in a textarea, do not intercept keys
       if (['TEXTAREA', 'INPUT'].includes(document.activeElement?.tagName)) return;
 
       if (['1', '2', '3'].includes(e.key)) {
@@ -524,7 +524,7 @@
 
       if (index === 1 || item.id === 'style_problem') {
         tagLabel = 'ROLE & PAIN POINT';
-        tagIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>`;
+        tagIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="6" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>`;
       } else if (index === 2 || item.id === 'style_casual') {
         tagLabel = 'CASUAL CONVERSATION STARTER';
         tagIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
@@ -571,7 +571,6 @@
     html += `</div>`;
     content.innerHTML = html;
 
-    // Attach real-time character count listeners
     icebreakers.forEach((_, index) => {
       const textarea = document.getElementById(`colddm-text-${index}`);
       const pill = document.getElementById(`colddm-char-${index}`);
@@ -582,7 +581,6 @@
       }
     });
 
-    // Attach copy button listeners with instant visual feedback
     const copyBtns = content.querySelectorAll('.colddm-copy-btn');
     copyBtns.forEach((btn) => {
       btn.addEventListener('click', async () => {
@@ -645,7 +643,6 @@
     currentProspectData = extractProspectData();
     openModal();
 
-    // Populate header info
     const nameEl = document.querySelector('#colddm-modal-name');
     const headlineEl = document.querySelector('#colddm-modal-headline');
     const initialsEl = document.querySelector('#colddm-modal-initials');
@@ -703,7 +700,6 @@
         throw new Error(data.error || `HTTP error ${response.status}`);
       }
 
-      // Generation successful: increment daily quota
       await incrementQuotaUsage();
       await updateQuotaHeader();
 
@@ -726,36 +722,31 @@
   }
 
   /* ==========================================================================
-     6. Initialization & SPA Navigation Watcher
+     6. Initialization & Navigation Watcher
      ========================================================================== */
 
   function init() {
-    console.log('[ColdDM] Content script loaded on:', window.location.href);
+    console.log('[ColdDM] Extension active on:', window.location.href);
 
-    // Clean up any old floating trigger if present
     const oldFloat = document.querySelector('#colddm-floating-btn');
     if (oldFloat) oldFloat.remove();
 
     injectButton();
 
-    // LinkedIn dynamic content loads in stages - retry at key intervals
     setTimeout(injectButton, 300);
-    setTimeout(injectButton, 800);
-    setTimeout(injectButton, 1500);
-    setTimeout(injectButton, 3000);
+    setTimeout(injectButton, 700);
+    setTimeout(injectButton, 1400);
+    setTimeout(injectButton, 2500);
 
-    // LinkedIn SPA Navigation Watcher
     let lastUrl = window.location.href;
     const observer = new MutationObserver(() => {
       const url = window.location.href;
       if (url !== lastUrl) {
         lastUrl = url;
-        console.log('[ColdDM] Navigation detected to:', url);
+        console.log('[ColdDM] Navigation to:', url);
         setTimeout(injectButton, 300);
         setTimeout(injectButton, 1000);
-        setTimeout(injectButton, 2500);
       } else {
-        // Check if button got removed by LinkedIn re-render
         if (isLinkedInProfile() && !document.querySelector('#colddm-btn-injected')) {
           injectButton();
         }
@@ -764,7 +755,6 @@
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Periodic check every 1s for resilient injection
     setInterval(() => {
       if (isLinkedInProfile() && !document.querySelector('#colddm-btn-injected')) {
         injectButton();
