@@ -184,93 +184,22 @@
   }
 
   /* ==========================================================================
-     3. Button Injection Logic (SPA Aware)
+     3. Button Injection Logic (SPA & All Profile Types Aware)
      ========================================================================== */
 
   function isLinkedInProfile() {
-    return window.location.pathname.startsWith('/in/') ||
-           window.location.href.includes('linkedin.com/in/') ||
-           window.location.href.includes('mock-linkedin');
-  }
-
-  function findActionTarget() {
-    // Stage 1: Explicit known LinkedIn action bar selectors
-    const actionRowSelectors = [
-      '.pvs-profile-actions',
-      '.pv-top-card-v2-ctas',
-      'div[class*="pv-top-card"] [class*="action"]',
-      'div.ph5 div.display-flex.mt2',
-      'div.ph5 div.display-flex.align-items-center',
-      'div.pv-top-card--list'
-    ];
-
-    for (const sel of actionRowSelectors) {
-      try {
-        const el = document.querySelector(sel);
-        if (el && el.querySelectorAll('button').length > 0) {
-          const moreBtn = el.querySelector('button[aria-label*="More"], button[aria-label*="more"], .artdeco-dropdown');
-          return { container: el, refNode: moreBtn || null };
-        }
-      } catch (e) {}
-    }
-
-    // Stage 2: Target action buttons in the profile top-card
-    // Works on prospect profiles (Message, Connect, Follow) and own profile (Open to, Add section, Enhance profile)
-    const topCard = document.querySelector('main section.artdeco-card:first-of-type, section.artdeco-card:first-of-type, .pv-top-card, main') || document.body;
-    const buttons = Array.from(topCard.querySelectorAll('button'));
-
-    const actionKeywords = [
-      'message', 'connect', 'follow', 'open to',
-      'add section', 'add profile section', 'enhance profile', 'pending'
-    ];
-
-    let matchedBtn = null;
-    let overflowBtn = null;
-
-    for (const btn of buttons) {
-      const text = (btn.innerText || '').trim().toLowerCase();
-      const aria = (btn.getAttribute('aria-label') || '').trim().toLowerCase();
-
-      // Check for action button match
-      for (const kw of actionKeywords) {
-        if (text.includes(kw) || aria.includes(kw)) {
-          matchedBtn = btn;
-          break;
-        }
-      }
-
-      // Check for More / ... button
-      if (text === '...' || aria.includes('more actions') || aria.includes('more profile actions')) {
-        overflowBtn = btn;
-      }
-    }
-
-    if (matchedBtn) {
-      // Find the row container of this button
-      const container = matchedBtn.closest('div.display-flex') || matchedBtn.parentElement;
-      // If overflowBtn exists in the same row, insert right before it; otherwise after matchedBtn
-      const refNode = (overflowBtn && overflowBtn.parentElement === container) ? overflowBtn : matchedBtn.nextSibling;
-      return { container, refNode };
-    }
-
-    if (overflowBtn) {
-      return { container: overflowBtn.parentElement, refNode: overflowBtn };
-    }
-
-    // Stage 3: Look for any button with class artdeco-button inside .ph5 or top card
-    const artdecoBtns = Array.from(document.querySelectorAll('.ph5 button.artdeco-button, .pv-top-card button.artdeco-button'));
-    if (artdecoBtns.length > 0) {
-      const lastBtn = artdecoBtns[artdecoBtns.length - 1];
-      return { container: lastBtn.parentElement, refNode: lastBtn.nextSibling };
-    }
-
-    return null;
+    const path = window.location.pathname;
+    const href = window.location.href;
+    return path.startsWith('/in/') ||
+           path.includes('/in/') ||
+           href.includes('linkedin.com/in/') ||
+           href.includes('mock-linkedin');
   }
 
   function injectButton() {
     if (!isLinkedInProfile()) return;
 
-    // Remove any floating button at the bottom so it doesn't overlap LinkedIn messaging
+    // Remove any old floating trigger if present
     const oldFloat = document.querySelector('#colddm-floating-btn');
     if (oldFloat) oldFloat.remove();
 
@@ -280,11 +209,7 @@
       return;
     }
 
-    const target = findActionTarget();
-    if (!target || !target.container) {
-      return;
-    }
-
+    // Create the button
     const btn = document.createElement('button');
     btn.id = 'colddm-btn-injected';
     btn.className = 'colddm-inject-btn';
@@ -304,11 +229,86 @@
       handleTriggerClick();
     });
 
-    if (target.refNode && target.refNode.parentElement === target.container) {
-      target.container.insertBefore(btn, target.refNode);
-    } else {
-      target.container.appendChild(btn);
+    // --- Search for the Action Button Row ---
+    // 1. Check known container classes first
+    const knownContainers = [
+      '.pvs-profile-actions',
+      '.pv-top-card-v2-ctas',
+      'div[class*="pv-top-card"] [class*="action"]'
+    ];
+    for (const sel of knownContainers) {
+      const container = document.querySelector(sel);
+      if (container && container.querySelectorAll('button').length > 0) {
+        const moreBtn = container.querySelector('button[aria-label*="More"], button[aria-label*="more"], .artdeco-dropdown');
+        if (moreBtn) {
+          container.insertBefore(btn, moreBtn);
+        } else {
+          container.appendChild(btn);
+        }
+        console.log('[ColdDM] Injected via known container:', sel);
+        return;
+      }
     }
+
+    // 2. Scan all buttons on the page to find profile action buttons
+    const allButtons = Array.from(document.querySelectorAll('button'));
+
+    const actionKeywords = [
+      'message', 'connect', 'follow', 'open to',
+      'add section', 'enhance profile', 'pending'
+    ];
+
+    let matchedBtn = null;
+    let overflowBtn = null;
+
+    for (const b of allButtons) {
+      // Must be inside the top section of the profile
+      const inTopCard = b.closest('.ph5, .pv-top-card, section.artdeco-card, main, [class*="top-card"]');
+      if (!inTopCard) continue;
+
+      const text = (b.textContent || b.innerText || '').trim().toLowerCase();
+      const aria = (b.getAttribute('aria-label') || '').trim().toLowerCase();
+
+      for (const kw of actionKeywords) {
+        if (text.includes(kw) || aria.includes(kw)) {
+          matchedBtn = b;
+          break;
+        }
+      }
+
+      if (text === '...' || aria.includes('more action') || aria.includes('more profile action') || aria.includes('more…')) {
+        overflowBtn = b;
+      }
+    }
+
+    // Prioritize inserting right before the "..." (More actions) overflow button
+    if (overflowBtn) {
+      const anchor = overflowBtn.closest('.artdeco-dropdown') || overflowBtn;
+      anchor.insertAdjacentElement('beforebegin', btn);
+      console.log('[ColdDM] Injected before More (...) overflow button');
+      return;
+    }
+
+    // Or insert immediately after the matched action button
+    if (matchedBtn) {
+      const anchor = matchedBtn.closest('.artdeco-dropdown') || matchedBtn;
+      anchor.insertAdjacentElement('afterend', btn);
+      console.log('[ColdDM] Injected after action button:', matchedBtn.textContent.trim());
+      return;
+    }
+
+    // 3. Fallback: Find connection info list and append to its sibling container
+    const connList = document.querySelector('ul.pv-top-card--list-bullet, .ph5 ul, span:has(+ ul)');
+    if (connList && connList.parentElement) {
+      const nextDiv = connList.parentElement.querySelector('div:has(button)') || connList.nextElementSibling;
+      if (nextDiv) {
+        nextDiv.appendChild(btn);
+        console.log('[ColdDM] Injected via connection list sibling fallback');
+        return;
+      }
+    }
+
+    console.warn('[ColdDM] Waiting for LinkedIn profile action buttons to render...');
   }
 
   /* ==========================================================================
@@ -387,8 +387,29 @@
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && overlay.classList.contains('colddm-visible')) {
+      if (!overlay.classList.contains('colddm-visible')) return;
+
+      if (e.key === 'Escape') {
         closeModal();
+        return;
+      }
+
+      // If user is actively typing in a textarea, do not intercept keys
+      if (['TEXTAREA', 'INPUT'].includes(document.activeElement?.tagName)) return;
+
+      if (['1', '2', '3'].includes(e.key)) {
+        const idx = parseInt(e.key, 10) - 1;
+        const btn = overlay.querySelector(`.colddm-copy-btn[data-target="colddm-text-${idx}"]`);
+        if (btn) {
+          e.preventDefault();
+          btn.click();
+        }
+      } else if (e.key.toLowerCase() === 'r') {
+        const regenBtn = overlay.querySelector('#colddm-regen-button');
+        if (regenBtn && !regenBtn.disabled) {
+          e.preventDefault();
+          regenBtn.click();
+        }
       }
     });
 
@@ -709,6 +730,8 @@
      ========================================================================== */
 
   function init() {
+    console.log('[ColdDM] Content script loaded on:', window.location.href);
+
     // Clean up any old floating trigger if present
     const oldFloat = document.querySelector('#colddm-floating-btn');
     if (oldFloat) oldFloat.remove();
@@ -719,6 +742,7 @@
     setTimeout(injectButton, 300);
     setTimeout(injectButton, 800);
     setTimeout(injectButton, 1500);
+    setTimeout(injectButton, 3000);
 
     // LinkedIn SPA Navigation Watcher
     let lastUrl = window.location.href;
@@ -726,8 +750,10 @@
       const url = window.location.href;
       if (url !== lastUrl) {
         lastUrl = url;
+        console.log('[ColdDM] Navigation detected to:', url);
         setTimeout(injectButton, 300);
         setTimeout(injectButton, 1000);
+        setTimeout(injectButton, 2500);
       } else {
         // Check if button got removed by LinkedIn re-render
         if (isLinkedInProfile() && !document.querySelector('#colddm-btn-injected')) {
