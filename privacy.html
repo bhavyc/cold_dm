@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - ColdDM AI Chrome Extension</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      color: #334155;
+      background: #f8fafc;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 36px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
+    }
+    h1 { color: #1e293b; margin-bottom: 8px; }
+    h2 { color: #334155; margin-top: 24px; margin-bottom: 8px; font-size: 18px; }
+    p, li { font-size: 14.5px; }
+    ul { padding-left: 20px; margin-bottom: 16px; }
+    .updated { color: #64748b; font-size: 13px; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Privacy Policy for ColdDM AI</h1>
+    <div class="updated">Last updated: November 2026</div>
+
+    <p><strong>ColdDM</strong> ("we", "our", or "the extension") is a lightweight Chrome Extension designed to help professionals generate personalized LinkedIn outreach icebreakers. We prioritize your privacy and transparency.</p>
+
+    <h2>1. Data Collection & Usage</h2>
+    <p>ColdDM activates only when you explicitly visit a LinkedIn profile (<code>linkedin.com/in/*</code>) and click the <strong>"Write Icebreaker"</strong> button.</p>
+    <ul>
+      <li><strong>Information Accessed:</strong> Publicly visible profile text on the active LinkedIn page (Prospect Name, Current Headline, About section snippet, and recent public post snippet).</li>
+      <li><strong>Purpose:</strong> This data is solely used as contextual input for Google Gemini to synthesize 3 personalized conversation icebreakers.</li>
+      <li><strong>No Personal Tracking:</strong> We do not track your browsing history, account passwords, personal messages, or contact lists.</li>
+    </ul>
+
+    <h2>2. API Security & Backend Processing</h2>
+    <p>To ensure high security, your AI API credentials are never exposed inside client-side browser code. Data is transmitted securely over HTTPS directly to the backend proxy service for generation and immediately returned to your browser. We do not store or persist prospect profile data on external databases.</p>
+
+    <h2>3. Local Storage</h2>
+    <p>We use <code>chrome.storage.local</code> strictly on your device to keep track of:</p>
+    <ul>
+      <li>Your daily free generation count (e.g. 25 free generations per day).</li>
+      <li>Your preferred backend API URL and preferences.</li>
+    </ul>
+
+    <h2>4. Third-Party Services</h2>
+    <p>Generative text features are powered by Google Gemini API. Interactions are subject to Google's standard Generative AI terms and privacy principles.</p>
+
+    <h2>5. Contact Us</h2>
+    <p>If you have any questions or feedback regarding this Privacy Policy, please contact the developer via GitHub or email.</p>
+  </div>
+</body>
+</html>
+

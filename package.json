@@ -1,0 +1,22 @@
+{
+  "name": "colddm-project",
+  "version": "1.0.0",
+  "description": "AI Cold DM Personalizer Chrome Extension & Serverless Proxy Backend",
+  "scripts": {
+    "start": "node backend/server.js",
+    "test": "node test/test-backend.js",
+    "package": "powershell -Command \"Compress-Archive -Path extension/* -DestinationPath colddm-extension-v1.0.0.zip -Force\"",
+    "icons": "node backend/generate-icons.js"
+  },
+  "keywords": [
+    "cold-outreach",
+    "chrome-extension",
+    "linkedin",
+    "gemini",
+    "ai",
+    "icebreakers"
+  ],
+  "author": "ColdDM Team",
+  "license": "MIT"
+}
+

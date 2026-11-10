@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ColdDM - AI Icebreaker Personalizer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="header-branding">
+        <div class="logo-icon">✨</div>
+        <div>
+          <h2>ColdDM AI</h2>
+          <span class="version-tag">v1.0 MVP</span>
+        </div>
+      </div>
+      <div class="status-indicator" id="connection-indicator" title="Backend Status">
+        <span class="status-dot"></span>
+        <span class="status-label" id="connection-text">Checking...</span>
+      </div>
+    </header>
+
+    <!-- Quota Usage Card -->
+    <section class="card quota-card">
+      <div class="quota-header">
+        <span class="card-title">Daily Free Quota</span>
+        <span class="quota-count" id="quota-count">0 / 25</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="quota-progress-bar" style="width: 0%;"></div>
+      </div>
+      <div class="quota-footer">
+        <span id="quota-remaining-text">25 generations remaining</span>
+        <span class="reset-hint">Resets at midnight</span>
+      </div>
+    </section>
+
+    <!-- Backend Configuration Card -->
+    <section class="card config-card">
+      <span class="card-title">Backend API Endpoint</span>
+      <p class="card-desc">Keeps your Google Gemini API key secure on the proxy backend.</p>
+
+      <div class="input-group">
+        <input type="text" id="backend-url-input" placeholder="http://localhost:5000" spellcheck="false" />
+        <button id="save-url-btn" class="btn btn-primary">Save</button>
+      </div>
+
+      <div class="config-actions">
+        <button id="test-connection-btn" class="btn btn-secondary btn-sm">
+          <span class="btn-icon">⚡</span> Test Backend Connection
+        </button>
+      </div>
+
+      <!-- Optional Direct Gemini Key Override -->
+      <details class="advanced-settings">
+        <summary>Advanced: Direct API Key Override</summary>
+        <div class="advanced-content">
+          <p class="card-desc">Optional: If set, overrides the backend key for direct custom testing.</p>
+          <div class="input-group">
+            <input type="password" id="direct-key-input" placeholder="AIzaSy... or AQ.Ab8..." spellcheck="false" />
+            <button id="save-key-btn" class="btn btn-secondary">Save</button>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- Quick How To Use -->
+    <section class="card guide-card">
+      <span class="card-title">How To Use</span>
+      <ol class="guide-steps">
+        <li>Open any LinkedIn profile (<code>linkedin.com/in/*</code>).</li>
+        <li>Click the <strong>✨ Write Icebreaker</strong> button next to Message/Connect.</li>
+        <li>Pick your favorite of the 3 hooks and click <strong>Copy</strong>!</li>
+      </ol>
+    </section>
+
+    <!-- Footer -->
+    <footer class="popup-footer">
+      <button id="reset-quota-btn" class="btn-link">Reset Quota (Test Mode)</button>
+      <span class="powered-by">Powered by Gemini AI</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+
