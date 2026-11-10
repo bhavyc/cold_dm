@@ -2,19 +2,26 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/generate.js",
+      "src": "api/*.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
+    {
+      "src": "/api/health",
+      "dest": "api/health.js"
+    },
+    {
+      "src": "/api/waitlist",
+      "dest": "api/waitlist.js"
+    },
     {
       "src": "/api/generate",
       "dest": "api/generate.js"
     },
     {
       "src": "/(.*)",
-      "dest": "api/generate.js"
+      "dest": "api/health.js"
     }
   ]
 }
-

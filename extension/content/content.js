@@ -7,7 +7,7 @@
   'use strict';
 
   const DAILY_QUOTA_LIMIT = 25;
-  const DEFAULT_BACKEND_URL = 'http://localhost:5000';
+  const DEFAULT_BACKEND_URL = 'https://replywave-omega.vercel.app';
 
   let currentProspectData = null;
   let isGenerating = false;
@@ -37,8 +37,8 @@
             count: quota.count || 0,
             remaining: Math.max(0, DAILY_QUOTA_LIMIT - (quota.count || 0)),
             isExceeded: (quota.count || 0) >= DAILY_QUOTA_LIMIT,
-            backendUrl: res.colddm_backend_url || DEFAULT_BACKEND_URL,
-            directKey: res.colddm_direct_key || ''
+            backendUrl: DEFAULT_BACKEND_URL,
+            directKey: ''
           });
         });
       } else {
@@ -316,7 +316,7 @@
       </svg>
       <span class="artdeco-button__text">Write Icebreaker</span>
     `;
-    btn.title = 'Draft personalized outreach with ColdDM';
+    btn.title = 'Draft personalized outreach with ReplyWave';
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -493,10 +493,58 @@
         <strong>Daily Free Limit Reached (25/25)</strong>
         You have used your 25 daily free generations. Your quota automatically resets tomorrow at midnight.
       </div>
-      <p style="text-align: center; color: #64748b; font-size: 12.5px; margin-top: 15px;">
-        Tip: Configure a custom API key in the extension popup for unlimited generations.
-      </p>
+      <div class="colddm-card" style="margin-top: 12px;">
+        <div style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+          Need Unlimited Icebreakers?
+        </div>
+        <div style="font-size: 12px; color: #64748b; line-height: 1.4;">
+          Drop your work email to get early access to ReplyWave Pro (unlimited credits + custom agency prompts).
+        </div>
+        <form class="colddm-lead-box" id="colddm-waitlist-form">
+          <input type="email" id="colddm-waitlist-email" class="colddm-lead-input" placeholder="you@company.com" required />
+          <button type="submit" class="colddm-lead-btn" id="colddm-waitlist-btn">Join Early Access</button>
+        </form>
+        <div id="colddm-waitlist-msg" style="font-size: 12px; margin-top: 8px; display: none;"></div>
+      </div>
     `;
+
+    const form = content.querySelector('#colddm-waitlist-form');
+    const msgEl = content.querySelector('#colddm-waitlist-msg');
+    const submitBtn = content.querySelector('#colddm-waitlist-btn');
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = content.querySelector('#colddm-waitlist-email').value.trim();
+        if (!email) return;
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Joining...';
+
+        try {
+          const res = await fetch(`${DEFAULT_BACKEND_URL}/api/waitlist`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, source: 'limit_banner' })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            msgEl.style.display = 'block';
+            msgEl.style.color = '#15803d';
+            msgEl.innerText = '✓ You are on the list! We will notify you soon.';
+            form.style.display = 'none';
+          } else {
+            throw new Error(data.error || 'Could not submit.');
+          }
+        } catch (err) {
+          msgEl.style.display = 'block';
+          msgEl.style.color = '#dc2626';
+          msgEl.innerText = 'Please enter a valid email and try again.';
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Join Early Access';
+        }
+      });
+    }
   }
 
   function renderError(message) {
@@ -729,10 +777,10 @@
       renderIcebreakers(data.icebreakers || []);
 
     } catch (err) {
-      console.error('ColdDM Generation error:', err);
-      let msg = err.message || 'Failed to connect to ColdDM backend.';
-      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
-        msg = `Could not connect to ColdDM backend (${quotaInfo.backendUrl}). Please make sure your backend server is running, or test connection in the ColdDM extension popup.`;
+      console.error('ReplyWave Generation error:', err);
+      let msg = 'Unable to draft messages right now. Please try again in a few seconds.';
+      if (err.message && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError')) {
+        msg = err.message;
       }
       renderError(msg);
     } finally {

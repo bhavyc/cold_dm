@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ColdDM - AI LinkedIn Cold DM Personalizer",
+  "name": "ReplyWave - LinkedIn Cold DM Personalizer",
   "version": "1.0.0",
-  "description": "Generate 3 high-converting, personalized cold DM icebreakers directly on LinkedIn profiles with 1 click.",
+  "description": "Turn cold LinkedIn profiles into warm conversations. Generate 3 personalized outreach icebreakers in 1 click.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -17,7 +17,7 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "ColdDM - AI Icebreaker Personalizer"
+    "default_title": "ReplyWave - LinkedIn Outreach Assistant"
   },
   "permissions": [
     "storage"
@@ -27,9 +27,7 @@
   },
   "host_permissions": [
     "https://*.linkedin.com/*",
-    "http://localhost:5000/*",
-    "http://127.0.0.1:5000/*",
-    "https://*/*"
+    "https://replywave-omega.vercel.app/*"
   ],
   "content_scripts": [
     {

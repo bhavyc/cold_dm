@@ -1,15 +1,19 @@
 /**
- * ColdDM Background Service Worker (Manifest V3)
+ * ReplyWave Background Service Worker (Manifest V3)
  */
 
+const PRODUCTION_API_URL = 'https://replywave-omega.vercel.app';
+
 chrome.runtime.onInstalled.addListener((details) => {
+  const today = new Date().toISOString().split('T')[0];
   if (details.reason === 'install') {
-    console.log('ColdDM Chrome Extension successfully installed!');
-    const today = new Date().toISOString().split('T')[0];
     chrome.storage.local.set({
       colddm_daily_quota: { date: today, count: 0 },
-      colddm_backend_url: 'http://localhost:5000'
+      colddm_backend_url: PRODUCTION_API_URL
+    });
+  } else if (details.reason === 'update') {
+    chrome.storage.local.set({
+      colddm_backend_url: PRODUCTION_API_URL
     });
   }
 });
-

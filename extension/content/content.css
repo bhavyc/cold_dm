@@ -463,6 +463,62 @@
   margin-bottom: 3px !important;
 }
 
+/* Lead Capture Box on Limit */
+.colddm-lead-box {
+  margin-top: 12px !important;
+  display: flex !important;
+  gap: 8px !important;
+}
+
+.colddm-lead-input {
+  flex: 1 !important;
+  padding: 7px 11px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  font-size: 12.5px !important;
+  outline: none !important;
+}
+
+.colddm-lead-input:focus {
+  border-color: #0a66c2 !important;
+}
+
+.colddm-lead-btn {
+  background: #0a66c2 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 7px 14px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+.colddm-lead-btn:hover {
+  background: #004182 !important;
+}
+
+/* Viral Review Banner */
+.colddm-review-banner {
+  background: #f0fdf4 !important;
+  border: 1px solid #bbf7d0 !important;
+  border-radius: 8px !important;
+  padding: 9px 13px !important;
+  margin-top: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  font-size: 12px !important;
+  color: #166534 !important;
+}
+
+.colddm-review-banner a {
+  color: #15803d !important;
+  font-weight: 700 !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+}
+
 /* Error Banner */
 .colddm-error-banner {
   background: #ffffff !important;

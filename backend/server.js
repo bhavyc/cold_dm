@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import generateHandler from './api/generate.js';
+import waitlistHandler from './api/waitlist.js';
 
 dotenv.config();
 
@@ -90,6 +91,11 @@ app.get('/api/health', (req, res) => {
 // Route for generation with Rate Limiting protection
 app.post('/api/generate', rateLimiter, (req, res) => {
   return generateHandler(req, res);
+});
+
+// Route for Pro Waitlist lead capture
+app.post('/api/waitlist', rateLimiter, (req, res) => {
+  return waitlistHandler(req, res);
 });
 
 // Start listening

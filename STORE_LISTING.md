@@ -1,4 +1,4 @@
-# Chrome Web Store Submission Listing: ColdDM
+# Chrome Web Store Submission Listing: ReplyWave
 
 Use this dossier when publishing to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 
@@ -6,9 +6,9 @@ Use this dossier when publishing to the [Chrome Web Store Developer Dashboard](h
 
 ## 1. Product Details
 
-- **Extension Name**: `ColdDM - AI LinkedIn Cold DM Personalizer`
+- **Extension Name**: `ReplyWave - LinkedIn Cold DM Personalizer`
 - **Short Description** (Max 132 chars):
-  > Generate 3 high-converting, personalized cold DM icebreakers directly on LinkedIn profiles with 1 click using Google Gemini.
+  > Turn cold LinkedIn profiles into warm conversations. Generate 3 personalized outreach icebreakers in 1 click.
 - **Category**: `Productivity` > `Workflow & Planning`
 - **Language**: `English`
 - **Version**: `1.0.0`
