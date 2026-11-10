@@ -4,6 +4,10 @@
     {
       "src": "api/*.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -20,8 +24,16 @@
       "dest": "api/generate.js"
     },
     {
+      "src": "/replywave.zip",
+      "dest": "public/replywave.zip"
+    },
+    {
+      "src": "/privacy.html",
+      "dest": "public/privacy.html"
+    },
+    {
       "src": "/(.*)",
-      "dest": "api/health.js"
+      "dest": "public/index.html"
     }
   ]
 }

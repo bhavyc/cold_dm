@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReplyWave - AI LinkedIn Cold DM Personalizer</title>
+  <meta name="description" content="Generate 3 hyper-personalized LinkedIn icebreakers in 1-click. Free Chrome Extension for sales reps, freelancers, and job seekers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: #0f141f;
+      --card-border: #1e2638;
+      --text: #f0f4fc;
+      --text-muted: #8b9bb4;
+      --primary: #0a66c2;
+      --primary-hover: #004182;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(ellipse at 50% 0%, rgba(10, 102, 194, 0.25) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 50%);
+      background-repeat: no-repeat;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navbar */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #0a66c2, #38bdf8);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .nav-badge {
+      font-size: 11px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 72px 0 48px;
+    }
+
+    .pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #38bdf8, #0a66c2, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #0a66c2, #0284c7);
+      color: #fff;
+      padding: 16px 36px;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 10px 25px -5px rgba(10, 102, 194, 0.5);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px -5px rgba(10, 102, 194, 0.7);
+      background: linear-gradient(135deg, #004182, #0a66c2);
+    }
+
+    .sub-note {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Live Preview Mockup */
+    .mockup-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 760px;
+      margin: 48px auto 0;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .mockup-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 20px;
+    }
+
+    .mock-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #eab308; }
+    .dot-green { background: #22c55e; }
+
+    .mock-profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .mock-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #233148;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #38bdf8;
+    }
+
+    .mock-btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .mock-btn-secondary {
+      padding: 7px 16px;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .mock-btn-primary {
+      padding: 7px 16px;
+      background: rgba(10, 102, 194, 0.15);
+      border: 1.5px solid #0a66c2;
+      border-radius: 16px;
+      font-size: 13px;
+      color: #38bdf8;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 15px rgba(10, 102, 194, 0.3);
+    }
+
+    /* 3 Step Installation Guide */
+    .steps-section {
+      padding: 80px 0;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 30px;
+      font-weight: 800;
+      margin-bottom: 40px;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .step-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 28px;
+      position: relative;
+    }
+
+    .step-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-glow);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+
+    .step-card h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .step-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .code-pill {
+      display: inline-block;
+      background: #141c2e;
+      color: #38bdf8;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      border: 1px solid #1f2d47;
+      margin-top: 6px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 32px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Navbar -->
+    <nav>
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        ReplyWave
+        <span class="nav-badge">Free Beta</span>
+      </a>
+      <div>
+        <a href="https://github.com/bhavyc/cold_dm" target="_blank" style="color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 600;">GitHub ↗</a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="pill-tag">
+        <span>⚡</span> 1-Click LinkedIn Cold Outreach Assistant
+      </div>
+      <h1>Stop sending generic cold DMs.<br><span>Turn profile visits into replies.</span></h1>
+      <p class="hero-sub">
+        ReplyWave analyzes any LinkedIn profile and generates 3 natural, high-converting icebreakers directly next to the prospect's Message button.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/replywave.zip" download="replywave.zip" class="btn-download">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download Free Extension (.ZIP)
+        </a>
+        <span class="sub-note">No credit card • Free 25 generations/day • Safe & clipboard only</span>
+      </div>
+
+      <!-- Preview Mockup -->
+      <div class="mockup-card">
+        <div class="mockup-header">
+          <div class="mock-dot dot-red"></div>
+          <div class="mock-dot dot-yellow"></div>
+          <div class="mock-dot dot-green"></div>
+          <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">linkedin.com/in/prospect</span>
+        </div>
+        <div class="mock-profile">
+          <div class="mock-avatar">IN</div>
+          <div style="text-align: left;">
+            <div style="font-weight: 700; font-size: 16px;">Alex Johnson</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Head of Growth @ SaaSify • Scaling to $10M ARR</div>
+          </div>
+        </div>
+        <div class="mock-btn-row">
+          <div class="mock-btn-secondary">Message</div>
+          <div class="mock-btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Write Icebreaker
+          </div>
+          <div class="mock-btn-secondary">More</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation Steps -->
+    <section class="steps-section">
+      <h2 class="section-title">How to Install in 30 Seconds</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <span class="step-number">STEP 01</span>
+          <h3>Download & Extract</h3>
+          <p>Click the download button above to get <span class="code-pill">replywave.zip</span>, then right click and extract the folder anywhere on your computer.</p>
+        </div>
+
+        <div class="step-card">
+          <span class="step-number">STEP 02</span>
+          <h3>Open Chrome Extensions</h3>
+          <p>In your Chrome browser, visit <span class="code-pill">chrome://extensions</span> and toggle on <strong>Developer mode</strong> in the top-right corner.</p>
+        </div>
+
+        <div class="step-card">
+          <span class="step-number">STEP 03</span>
+          <h3>Load Unpacked</h3>
+          <p>Click the <strong>Load unpacked</strong> button on the top-left and select the extracted <span class="code-pill">extension</span> folder. You're ready to outreach!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>© 2026 ReplyWave. Built for modern outreach. <a href="/privacy.html">Privacy Policy</a></p>
+    </footer>
+  </div>
+
+</body>
+</html>
