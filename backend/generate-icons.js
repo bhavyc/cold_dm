@@ -13,9 +13,7 @@ if (!fs.existsSync(outputDir)) {
 function createIcon(size) {
   const png = new PNG({ width: size, height: size });
 
-  // Generate an elegant gradient rounded-square icon with a glowing sparkle/star
   const center = size / 2;
-  const radius = size * 0.46;
   const cornerRadius = size * 0.22;
 
   for (let y = 0; y < size; y++) {
@@ -28,7 +26,6 @@ function createIcon(size) {
       const distToCorner = Math.sqrt(dx * dx + dy * dy);
 
       if (distToCorner > cornerRadius) {
-        // Transparent outside rounded box
         png.data[idx] = 0;
         png.data[idx + 1] = 0;
         png.data[idx + 2] = 0;
@@ -36,33 +33,42 @@ function createIcon(size) {
         continue;
       }
 
-      // Smooth antialiasing on outer edge
       let alpha = 255;
       if (distToCorner > cornerRadius - 1) {
         alpha = Math.floor(255 * (cornerRadius - distToCorner));
       }
 
-      // Gradient from Indigo (#4f46e5) to Violet (#7c3aed) to Electric Sky (#0284c7)
+      // LinkedIn Blue base (#0a66c2 to #004182)
       const t = (x + y) / (size * 2);
-      const r = Math.floor(79 * (1 - t) + 124 * t);
-      const g = Math.floor(70 * (1 - t) + 58 * t);
-      const b = Math.floor(229 * (1 - t) + 237 * t);
+      const r = Math.floor(10 * (1 - t) + 0 * t);
+      const g = Math.floor(102 * (1 - t) + 65 * t);
+      const b = Math.floor(194 * (1 - t) + 130 * t);
 
-      // Draw a 4-point sparkle / star in the center
-      const sx = (x - center) / (size * 0.32);
-      const sy = (y - center) / (size * 0.32);
-      const starDist = Math.abs(sx) * Math.abs(sy) + Math.sqrt(sx * sx + sy * sy) * 0.35;
+      // Clean Quill / Pen Motif (Centered)
+      const nx = (x - center) / (size * 0.35);
+      const ny = (y - center) / (size * 0.35);
 
-      // Inner chat bubble + star motif
-      if (starDist < 0.42) {
-        // Bright White Sparkle with slight glow
-        const glow = Math.min(1, (0.42 - starDist) / 0.15);
-        png.data[idx] = Math.floor(255 * glow + r * (1 - glow));
-        png.data[idx + 1] = Math.floor(255 * glow + g * (1 - glow));
-        png.data[idx + 2] = Math.floor(255 * glow + b * (1 - glow));
+      // Slanted line for pen body
+      const distToPenLine = Math.abs(nx - ny) / Math.SQRT2;
+      const isAlongPen = (nx + ny) > -0.65 && (nx + ny) < 0.65;
+
+      let isPen = false;
+      if (isAlongPen && distToPenLine < 0.18) {
+        isPen = true;
+      }
+      // Nib
+      if ((nx + ny) < -0.55 && (nx + ny) > -0.9 && Math.abs(nx - ny) < 0.25) {
+        isPen = true;
+      }
+
+      if (isPen) {
+        // Pure White
+        png.data[idx] = 255;
+        png.data[idx + 1] = 255;
+        png.data[idx + 2] = 255;
         png.data[idx + 3] = alpha;
       } else {
-        // Gradient background
+        // Professional blue background
         png.data[idx] = r;
         png.data[idx + 1] = g;
         png.data[idx + 2] = b;
@@ -78,5 +84,4 @@ function createIcon(size) {
 }
 
 [16, 32, 48, 128].forEach(createIcon);
-console.log('All icons generated successfully!');
-
+console.log('Icons refreshed with LinkedIn-native styling!');

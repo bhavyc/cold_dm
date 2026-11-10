@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ColdDM - AI Icebreaker Personalizer</title>
+  <title>ColdDM - LinkedIn Outreach Assistant</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -11,10 +11,15 @@
     <!-- Header -->
     <header class="popup-header">
       <div class="header-branding">
-        <div class="logo-icon">✨</div>
+        <div class="logo-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
         <div>
-          <h2>ColdDM AI</h2>
-          <span class="version-tag">v1.0 MVP</span>
+          <h2>ColdDM</h2>
+          <span class="version-tag">PRO OUTREACH</span>
         </div>
       </div>
       <div class="status-indicator" id="connection-indicator" title="Backend Status">
@@ -26,7 +31,7 @@
     <!-- Quota Usage Card -->
     <section class="card quota-card">
       <div class="quota-header">
-        <span class="card-title">Daily Free Quota</span>
+        <span class="card-title">Daily Generations Quota</span>
         <span class="quota-count" id="quota-count">0 / 25</span>
       </div>
       <div class="progress-bar-bg">
@@ -40,8 +45,8 @@
 
     <!-- Backend Configuration Card -->
     <section class="card config-card">
-      <span class="card-title">Backend API Endpoint</span>
-      <p class="card-desc">Keeps your Google Gemini API key secure on the proxy backend.</p>
+      <span class="card-title">Backend API Service</span>
+      <p class="card-desc">Proxy keeps your AI credentials secure off the client browser.</p>
 
       <div class="input-group">
         <input type="text" id="backend-url-input" placeholder="http://localhost:5000" spellcheck="false" />
@@ -50,15 +55,19 @@
 
       <div class="config-actions">
         <button id="test-connection-btn" class="btn btn-secondary btn-sm">
-          <span class="btn-icon">⚡</span> Test Backend Connection
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span>Test Server Connection</span>
         </button>
       </div>
 
       <!-- Optional Direct Gemini Key Override -->
       <details class="advanced-settings">
-        <summary>Advanced: Direct API Key Override</summary>
+        <summary>Advanced: Custom API Key</summary>
         <div class="advanced-content">
-          <p class="card-desc">Optional: If set, overrides the backend key for direct custom testing.</p>
+          <p class="card-desc">Optional: Overrides backend credentials for direct offline testing.</p>
           <div class="input-group">
             <input type="password" id="direct-key-input" placeholder="AIzaSy... or AQ.Ab8..." spellcheck="false" />
             <button id="save-key-btn" class="btn btn-secondary">Save</button>
@@ -69,22 +78,21 @@
 
     <!-- Quick How To Use -->
     <section class="card guide-card">
-      <span class="card-title">How To Use</span>
+      <span class="card-title">Quick Workflow</span>
       <ol class="guide-steps">
-        <li>Open any LinkedIn profile (<code>linkedin.com/in/*</code>).</li>
-        <li>Click the <strong>✨ Write Icebreaker</strong> button next to Message/Connect.</li>
-        <li>Pick your favorite of the 3 hooks and click <strong>Copy</strong>!</li>
+        <li>Visit any profile on LinkedIn (<code>linkedin.com/in/*</code>).</li>
+        <li>Click <strong>Write Icebreaker</strong> next to Message / Connect.</li>
+        <li>Review 3 tailored angles and copy into your outreach note.</li>
       </ol>
     </section>
 
     <!-- Footer -->
     <footer class="popup-footer">
-      <button id="reset-quota-btn" class="btn-link">Reset Quota (Test Mode)</button>
-      <span class="powered-by">Powered by Gemini AI</span>
+      <button id="reset-quota-btn" class="btn-link">Reset Quota (Test)</button>
+      <span class="powered-by">ColdDM Extension</span>
     </footer>
   </div>
 
   <script src="popup.js"></script>
 </body>
 </html>
-

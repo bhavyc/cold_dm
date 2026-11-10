@@ -177,3 +177,4 @@ Write 3 tailored icebreakers now following the system rules.
     return new Response(JSON.stringify({ error: 'Not Found' }), { status: 404, headers: corsHeaders() });
   }
 };
+

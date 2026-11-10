@@ -5,3 +5,4 @@ compatibility_date = "2024-01-01"
 [vars]
 # Configure your Gemini API key in Cloudflare secrets via:
 # npx wrangler secret put GEMINI_API_KEY
+

@@ -289,8 +289,14 @@
     btn.id = 'colddm-btn-injected';
     btn.className = 'colddm-inject-btn';
     btn.setAttribute('type', 'button');
-    btn.innerHTML = `<span class="colddm-sparkle-icon">✨</span> Write Icebreaker`;
-    btn.title = 'Generate 3 high-converting cold DM icebreakers with AI';
+    btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h9"/>
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+      <span>Write Icebreaker</span>
+    `;
+    btn.title = 'Draft personalized outreach with ColdDM';
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -309,6 +315,13 @@
      4. Modal Overlay Component
      ========================================================================== */
 
+  function getInitials(name) {
+    if (!name || name === 'Prospect') return 'DM';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
   function createModalRoot() {
     let overlay = document.querySelector('#colddm-overlay-root');
     if (overlay) return overlay;
@@ -319,29 +332,38 @@
       <div class="colddm-modal" id="colddm-modal-box">
         <div class="colddm-modal-header">
           <div class="colddm-header-left">
-            <div class="colddm-logo-badge">✨</div>
+            <div class="colddm-avatar-badge" id="colddm-modal-initials">SC</div>
             <div class="colddm-title-box">
-              <h3 id="colddm-modal-name">ColdDM AI Icebreakers</h3>
+              <h3 id="colddm-modal-name">Draft Outreach Messages</h3>
               <p id="colddm-modal-headline">Loading prospect data...</p>
             </div>
           </div>
           <div class="colddm-header-right">
             <div class="colddm-quota-badge" id="colddm-quota-display">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
               <span id="colddm-quota-text">25 / 25 left</span>
             </div>
-            <button class="colddm-close-btn" id="colddm-close-x" title="Close (Esc)">✕</button>
+            <span class="colddm-kbd">Esc</span>
+            <button class="colddm-close-btn" id="colddm-close-x" title="Close (Esc)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
         </div>
         <div class="colddm-modal-body" id="colddm-modal-content">
           <!-- Dynamic states injected here: Skeleton, Limit Banner, or Cards -->
         </div>
         <div class="colddm-modal-footer">
-          <span class="colddm-footer-meta">Click "Copy" to paste directly into LinkedIn Chat</span>
+          <span class="colddm-footer-meta">Click "Copy" to paste into LinkedIn Connection Note or Message</span>
           <button class="colddm-regen-btn" id="colddm-regen-button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
             </svg>
-            <span>Regenerate</span>
+            <span>Regenerate Drafts</span>
           </button>
         </div>
       </div>
@@ -395,7 +417,7 @@
       <div class="colddm-skeleton-container">
         <div class="colddm-skeleton-loading-text">
           <div class="colddm-spinner"></div>
-          <span>Reading profile & crafting 3 personalized angles with AI...</span>
+          <span>Analyzing prospect profile and drafting 3 unique angles...</span>
         </div>
         <div class="colddm-skeleton-card">
           <div class="colddm-shimmer colddm-skeleton-pill"></div>
@@ -424,14 +446,11 @@
     if (!content) return;
     content.innerHTML = `
       <div class="colddm-limit-banner">
-        <div style="font-size: 24px;">🚫</div>
-        <div>
-          <strong>Daily Free Limit Reached (25/25)</strong>
-          You've used your 25 daily free generations. Your quota automatically resets tomorrow at midnight!
-        </div>
+        <strong>Daily Free Limit Reached (25/25)</strong>
+        You have used your 25 daily free generations. Your quota automatically resets tomorrow at midnight.
       </div>
-      <p style="text-align: center; color: #64748b; font-size: 13px; margin-top: 15px;">
-        💡 Tip: You can adjust or configure a custom API key in the ColdDM extension popup if you need unlimited requests.
+      <p style="text-align: center; color: #64748b; font-size: 12.5px; margin-top: 15px;">
+        Tip: Configure a custom API key in the extension popup for unlimited generations.
       </p>
     `;
   }
@@ -442,8 +461,8 @@
 
     content.innerHTML = `
       <div class="colddm-error-banner">
-        <p>⚠️ <strong>Generation Error</strong></p>
-        <p style="margin: 8px 0; font-size: 13px;">${escapeHtml(message)}</p>
+        <p><strong>Connection Error</strong></p>
+        <p style="margin: 8px 0; font-size: 13px; color: #475569;">${escapeHtml(message)}</p>
         <button id="colddm-retry-btn">Try Again</button>
       </div>
     `;
@@ -463,6 +482,15 @@
       .replace(/'/g, '&#039;');
   }
 
+  function updateCharCountPill(textarea, pillEl) {
+    const len = textarea.value.length;
+    const isConnNote = len <= 300;
+    pillEl.innerHTML = `
+      <span class="colddm-status-dot ${isConnNote ? '' : 'inmail'}"></span>
+      <span>${len} chars • ${isConnNote ? 'Fits Connection Note (<300)' : 'Best for InMail / DM'}</span>
+    `;
+  }
+
   function renderIcebreakers(icebreakers) {
     const content = document.querySelector('#colddm-modal-content');
     if (!content) return;
@@ -470,25 +498,30 @@
     let html = `<div class="colddm-card-list">`;
 
     icebreakers.forEach((item, index) => {
-      let tagClass = 'colddm-tag-compliment';
-      let tagIcon = '🎯';
+      let tagLabel = 'RECENT POST & MILESTONE';
+      let tagIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+
       if (index === 1 || item.id === 'style_problem') {
-        tagClass = 'colddm-tag-problem';
-        tagIcon = '💡';
+        tagLabel = 'ROLE & PAIN POINT';
+        tagIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>`;
       } else if (index === 2 || item.id === 'style_casual') {
-        tagClass = 'colddm-tag-casual';
-        tagIcon = '☕';
+        tagLabel = 'CASUAL CONVERSATION STARTER';
+        tagIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
       }
+
+      const initialLen = (item.text || '').length;
+      const fitsNote = initialLen <= 300;
 
       html += `
         <div class="colddm-card" data-index="${index}">
           <div class="colddm-card-header">
-            <span class="colddm-card-tag ${tagClass}">
-              ${tagIcon} ${escapeHtml(item.style || `Style ${index + 1}`)}
+            <span class="colddm-card-tag">
+              ${tagIcon}
+              <span>${tagLabel}</span>
             </span>
             <div class="colddm-card-actions">
               <button class="colddm-copy-btn" data-target="colddm-text-${index}">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
@@ -497,12 +530,17 @@
             </div>
           </div>
           <div class="colddm-text-container">
-            <textarea class="colddm-message-textarea" id="colddm-text-${index}">${escapeHtml(item.text)}</textarea>
+            <textarea class="colddm-message-textarea" id="colddm-text-${index}" spellcheck="false">${escapeHtml(item.text)}</textarea>
+          </div>
+          <div class="colddm-card-footer">
+            <div class="colddm-char-pill" id="colddm-char-${index}">
+              <span class="colddm-status-dot ${fitsNote ? '' : 'inmail'}"></span>
+              <span>${initialLen} chars • ${fitsNote ? 'Fits Connection Note (<300)' : 'Best for InMail / DM'}</span>
+            </div>
           </div>
           ${item.whyItWorks ? `
-            <div class="colddm-why-box">
-              <span class="colddm-why-icon">💡</span>
-              <span><strong>Why it works:</strong> ${escapeHtml(item.whyItWorks)}</span>
+            <div class="colddm-why-line">
+              <strong>Strategy:</strong> ${escapeHtml(item.whyItWorks)}
             </div>
           ` : ''}
         </div>
@@ -511,6 +549,17 @@
 
     html += `</div>`;
     content.innerHTML = html;
+
+    // Attach real-time character count listeners
+    icebreakers.forEach((_, index) => {
+      const textarea = document.getElementById(`colddm-text-${index}`);
+      const pill = document.getElementById(`colddm-char-${index}`);
+      if (textarea && pill) {
+        textarea.addEventListener('input', () => {
+          updateCharCountPill(textarea, pill);
+        });
+      }
+    });
 
     // Attach copy button listeners with instant visual feedback
     const copyBtns = content.querySelectorAll('.colddm-copy-btn');
@@ -525,15 +574,15 @@
           await navigator.clipboard.writeText(textToCopy);
           btn.classList.add('copied');
           btn.innerHTML = `
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Copied! ✓</span>
+            <span>Copied!</span>
           `;
           setTimeout(() => {
             btn.classList.remove('copied');
             btn.innerHTML = `
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
@@ -541,10 +590,9 @@
             `;
           }, 2000);
         } catch (err) {
-          // Fallback selection copy
           textarea.select();
           document.execCommand('copy');
-          btn.innerText = 'Copied! ✓';
+          btn.innerText = 'Copied!';
           setTimeout(() => { btn.innerText = 'Copy'; }, 2000);
         }
       });
@@ -579,8 +627,12 @@
     // Populate header info
     const nameEl = document.querySelector('#colddm-modal-name');
     const headlineEl = document.querySelector('#colddm-modal-headline');
-    if (nameEl) nameEl.innerText = currentProspectData.name || 'Prospect Profile';
-    if (headlineEl) headlineEl.innerText = currentProspectData.headline || 'LinkedIn Prospect';
+    const initialsEl = document.querySelector('#colddm-modal-initials');
+
+    const prospectName = currentProspectData.name || 'Prospect';
+    if (nameEl) nameEl.innerText = `Outreach Drafts for ${prospectName}`;
+    if (headlineEl) headlineEl.innerText = currentProspectData.headline || 'LinkedIn Member';
+    if (initialsEl) initialsEl.innerText = getInitials(prospectName);
 
     const quotaInfo = await updateQuotaHeader();
     if (quotaInfo.isExceeded) {
