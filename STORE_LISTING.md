@@ -89,3 +89,4 @@ When submitting in the Developer Dashboard, Google requires explanations for req
 - [x] **Marquee Banner**: `store-assets/marquee-1280x800.png` (1280x800 px)
 - [x] **Privacy Policy URL / File**: `privacy.html`
 - [x] **Submission Zip Package**: `colddm-extension-v1.0.0.zip`
+
