@@ -191,78 +191,100 @@
   }
 
   function findActionTarget() {
-    // 1. Primary Strategy: Locate top profile card via the primary <h1>
-    const h1 = document.querySelector('main h1, .scaffold-layout__main h1, h1');
-    if (h1) {
-      // Find the card container holding this profile header
-      const card = h1.closest('section.artdeco-card, div.ph5, div.pv-top-card, .scaffold-layout__main') || h1.parentElement?.parentElement?.parentElement;
-      if (card) {
-        const buttons = Array.from(card.querySelectorAll('button'));
+    // Collect all candidate action buttons and links on the page
+    const selectors = [
+      'main .artdeco-button',
+      '.scaffold-layout__main .artdeco-button',
+      '.ph5 .artdeco-button',
+      '.pv-top-card .artdeco-button',
+      'section.artdeco-card:first-of-type .artdeco-button',
+      'main button',
+      'main a[role="button"]',
+      '.ph5 button',
+      '.ph5 a[role="button"]',
+      'button.artdeco-button',
+      'a.artdeco-button'
+    ];
 
-        // Look for [Message] button in this card
-        const msgBtn = buttons.find(b => {
-          const t = (b.textContent || b.innerText || '').toLowerCase();
-          const a = (b.getAttribute('aria-label') || '').toLowerCase();
-          return t.includes('message') || a.includes('message');
+    let candidates = [];
+    for (const sel of selectors) {
+      const found = Array.from(document.querySelectorAll(sel));
+      if (found.length > 0) {
+        // Exclude sidebar, navigation, messaging docks
+        const filtered = found.filter(el => {
+          return !el.closest('header, nav, aside, .scaffold-layout__aside, [class*="aside"], #msg-overlay, .msg-overlay-bubble-header, #global-nav');
         });
-        if (msgBtn) {
-          const anchor = msgBtn.closest('.artdeco-dropdown') || msgBtn;
-          return { anchor, position: 'afterend', label: 'Message button' };
-        }
-
-        // Look for [Connect] button in this card
-        const connBtn = buttons.find(b => {
-          const t = (b.textContent || b.innerText || '').toLowerCase();
-          const a = (b.getAttribute('aria-label') || '').toLowerCase();
-          return t.includes('connect') || a.includes('connect');
-        });
-        if (connBtn) {
-          const anchor = connBtn.closest('.artdeco-dropdown') || connBtn;
-          return { anchor, position: 'afterend', label: 'Connect button' };
-        }
-
-        // Look for [Enhance profile] / [Add section] / [Open to] (Own profile)
-        const ownBtn = buttons.find(b => {
-          const t = (b.textContent || b.innerText || '').toLowerCase();
-          const a = (b.getAttribute('aria-label') || '').toLowerCase();
-          return t.includes('enhance profile') || t.includes('add section') || t.includes('open to');
-        });
-        if (ownBtn) {
-          const anchor = ownBtn.closest('.artdeco-dropdown') || ownBtn;
-          return { anchor, position: 'afterend', label: 'Own profile action button' };
-        }
-
-        // Look for [...] More actions button in this card
-        const moreBtn = buttons.find(b => {
-          const t = (b.textContent || b.innerText || '').trim();
-          const a = (b.getAttribute('aria-label') || '').toLowerCase();
-          return t === '...' || a.includes('more action') || a.includes('more profile action');
-        });
-        if (moreBtn) {
-          const anchor = moreBtn.closest('.artdeco-dropdown') || moreBtn;
-          return { anchor, position: 'beforebegin', label: 'More (...) overflow button' };
+        if (filtered.length > 0) {
+          candidates = filtered;
+          break;
         }
       }
     }
 
-    // 2. Secondary Strategy: Scan all page buttons, but strictly EXCLUDE sidebar
-    const allButtons = Array.from(document.querySelectorAll('button'));
-    const validMainBtn = allButtons.find(b => {
-      // Exclude aside, sidebars, messaging popups
-      if (b.closest('aside, .scaffold-layout__aside, [class*="aside"], .msg-overlay-bubble-header, #msg-overlay')) {
-        return false;
-      }
+    if (candidates.length === 0) {
+      const all = Array.from(document.querySelectorAll('button, a[role="button"], .artdeco-button'));
+      candidates = all.filter(el => {
+        if (el.closest('header, nav, aside, .scaffold-layout__aside, [class*="aside"], #msg-overlay, .msg-overlay-bubble-header, #global-nav')) {
+          return false;
+        }
+        const t = (el.textContent || el.innerText || '').toLowerCase();
+        const a = (el.getAttribute('aria-label') || '').toLowerCase();
+        return t.includes('message') || t.includes('connect') || t.includes('open to') || t.includes('enhance profile') || t.includes('add section') || a.includes('more action') || t === '...';
+      });
+    }
+
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    // 1. Look for [Message] button -> insert immediately after it
+    const msgBtn = candidates.find(b => {
       const t = (b.textContent || b.innerText || '').toLowerCase();
       const a = (b.getAttribute('aria-label') || '').toLowerCase();
-      return t.includes('message') || t.includes('connect') || t.includes('open to');
+      return t.includes('message') || a.includes('message');
     });
-
-    if (validMainBtn) {
-      const anchor = validMainBtn.closest('.artdeco-dropdown') || validMainBtn;
-      return { anchor, position: 'afterend', label: 'Main page action button fallback' };
+    if (msgBtn) {
+      const anchor = msgBtn.closest('.artdeco-dropdown') || msgBtn;
+      return { anchor, position: 'afterend', label: 'Message button' };
     }
 
-    return null;
+    // 2. Look for [Connect] button -> insert immediately after it
+    const connBtn = candidates.find(b => {
+      const t = (b.textContent || b.innerText || '').toLowerCase();
+      const a = (b.getAttribute('aria-label') || '').toLowerCase();
+      return t.includes('connect') || a.includes('connect');
+    });
+    if (connBtn) {
+      const anchor = connBtn.closest('.artdeco-dropdown') || connBtn;
+      return { anchor, position: 'afterend', label: 'Connect button' };
+    }
+
+    // 3. Look for [Enhance profile] / [Add section] / [Open to] (Own profile)
+    const ownBtn = candidates.find(b => {
+      const t = (b.textContent || b.innerText || '').toLowerCase();
+      const a = (b.getAttribute('aria-label') || '').toLowerCase();
+      return t.includes('enhance profile') || t.includes('add section') || t.includes('open to');
+    });
+    if (ownBtn) {
+      const anchor = ownBtn.closest('.artdeco-dropdown') || ownBtn;
+      return { anchor, position: 'afterend', label: 'Own profile button' };
+    }
+
+    // 4. Look for [...] (More actions) overflow button -> insert right before it
+    const moreBtn = candidates.find(b => {
+      const t = (b.textContent || b.innerText || '').trim();
+      const a = (b.getAttribute('aria-label') || '').toLowerCase();
+      return t === '...' || a.includes('more action') || a.includes('more profile action');
+    });
+    if (moreBtn) {
+      const anchor = moreBtn.closest('.artdeco-dropdown') || moreBtn;
+      return { anchor, position: 'beforebegin', label: 'More actions button' };
+    }
+
+    // 5. Fallback: Take the last action button in the top group
+    const lastBtn = candidates[candidates.length - 1];
+    const anchor = lastBtn.closest('.artdeco-dropdown') || lastBtn;
+    return { anchor, position: 'afterend', label: 'Top-card button fallback' };
   }
 
   function injectButton() {
@@ -307,7 +329,7 @@
       } else {
         target.anchor.insertAdjacentElement('afterend', btn);
       }
-      console.log(`%c[ColdDM] Injected button successfully (${target.label})`, 'color: #0a66c2; font-weight: bold;');
+      console.log(`%c[ColdDM] ✅ Injected button successfully (${target.label})`, 'color: #0a66c2; font-weight: bold;');
     } catch (err) {
       console.error('[ColdDM] Failed to insert button:', err);
     }
@@ -726,26 +748,28 @@
      ========================================================================== */
 
   function init() {
-    console.log('[ColdDM] Extension active on:', window.location.href);
+    console.log('[ColdDM] Content script running on:', window.location.href);
 
     const oldFloat = document.querySelector('#colddm-floating-btn');
     if (oldFloat) oldFloat.remove();
 
     injectButton();
 
+    setTimeout(injectButton, 100);
     setTimeout(injectButton, 300);
-    setTimeout(injectButton, 700);
-    setTimeout(injectButton, 1400);
-    setTimeout(injectButton, 2500);
+    setTimeout(injectButton, 600);
+    setTimeout(injectButton, 1000);
+    setTimeout(injectButton, 1800);
+    setTimeout(injectButton, 3000);
 
     let lastUrl = window.location.href;
     const observer = new MutationObserver(() => {
       const url = window.location.href;
       if (url !== lastUrl) {
         lastUrl = url;
-        console.log('[ColdDM] Navigation to:', url);
-        setTimeout(injectButton, 300);
-        setTimeout(injectButton, 1000);
+        console.log('[ColdDM] URL changed:', url);
+        setTimeout(injectButton, 200);
+        setTimeout(injectButton, 800);
       } else {
         if (isLinkedInProfile() && !document.querySelector('#colddm-btn-injected')) {
           injectButton();

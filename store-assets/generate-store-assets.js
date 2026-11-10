@@ -114,3 +114,4 @@ function generateMarqueeLarge() {
 generatePromoSmall();
 generateMarqueeLarge();
 console.log('Store promotional graphic assets ready!');
+
